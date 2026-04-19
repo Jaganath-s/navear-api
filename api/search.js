@@ -1,43 +1,29 @@
 export default async function handler(req, res) {
 
-  const { q, lat, lon } = req.query;
+const { q, lat, lon } = req.query
 
-  if (!q || !lat || !lon) {
-    return res.status(400).json({ error: "missing parameters" });
-  }
+const url =
+`https://serpapi.com/search.json?engine=google_maps&type=search&q=${encodeURIComponent(q)}&ll=@${lat},${lon},14z&api_key=YOUR_SERPAPI_KEY`
 
-  try {
+try {
 
-    const query =
-      `https://www.google.com/maps/search/${encodeURIComponent(q)}+near+${lat},${lon}`;
+const r = await fetch(url)
+const data = await r.json()
 
-    const response = await fetch(query, {
-      headers: {
-        "User-Agent": "Mozilla/5.0"
-      }
-    });
+if (!data.local_results || data.local_results.length === 0) {
+return res.status(404).json({ error: "no place found" })
+}
 
-    const html = await response.text();
+const place = data.local_results[0]
 
-    const match = html.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+res.json({
+name: place.title,
+lat: place.gps_coordinates.latitude,
+lon: place.gps_coordinates.longitude
+})
 
-    if (!match) {
-      return res.status(404).json({ error: "location not found" });
-    }
-
-    const latitude = parseFloat(match[1]);
-    const longitude = parseFloat(match[2]);
-
-    res.json({
-      name: q,
-      lat: latitude,
-      lon: longitude
-    });
-
-  } catch (err) {
-
-    res.status(500).json({ error: "search failed" });
-
-  }
+} catch (e) {
+res.status(500).json({ error: "API request failed" })
+}
 
 }
