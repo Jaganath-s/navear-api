@@ -4,29 +4,33 @@ const query = req.query.q
 const lat = req.query.lat
 const lon = req.query.lon
 
-// Bias search near user location
-const searchQuery = `${query} near ${lat},${lon}`
+const MAPPLS_KEY = "b7d84b6cfc33e01bbf1d544e6dedc77a"
 
 const url =
-`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`
+`https://atlas.mappls.com/api/places/nearby/json?keywords=${query}&refLocation=${lat},${lon}&radius=2000&access_token=${MAPPLS_KEY}`
 
-const r = await fetch(url,{
-headers:{
-"User-Agent":"NavEar"
-}
-})
+try {
 
+const r = await fetch(url)
 const data = await r.json()
 
-if (!data || data.length === 0) {
+if (!data.suggestedLocations || data.suggestedLocations.length === 0) {
 res.json({error:"No place found"})
 return
 }
 
+const place = data.suggestedLocations[0]
+
 res.json({
-name:data[0].display_name,
-lat:data[0].lat,
-lon:data[0].lon
+name: place.placeName,
+lat: place.latitude,
+lon: place.longitude
 })
+
+}
+catch(e)
+{
+res.json({error:"API failed"})
+}
 
 }
