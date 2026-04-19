@@ -8,12 +8,17 @@ export default async function handler(req, res) {
 
   try {
 
+    const OLA_API_KEY = "PASTE_YOUR_OLA_KEY_HERE";
+
     const url =
-      `https://api.olamaps.io/places/v1/search?q=${encodeURIComponent(q)}&location=${lat},${lon}`;
+      "https://api.olamaps.io/places/v1/search?q=" +
+      encodeURIComponent(q) +
+      "&location=" +
+      lat + "," + lon;
 
     const response = await fetch(url, {
       headers: {
-        "x-api-key": process.env.OLA_MAPS_KEY
+        "x-api-key": j85oYrhSLfT3wAJJFfkzpYRspIDapGLOu9gj4hdz
       }
     });
 
@@ -36,4 +41,5 @@ export default async function handler(req, res) {
     res.status(500).json({ error: "API request failed" });
 
   }
+
 }
