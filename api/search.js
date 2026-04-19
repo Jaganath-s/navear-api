@@ -1,60 +1,39 @@
 export default async function handler(req, res) {
 
-const query = req.query.q
-const lat = req.query.lat
-const lon = req.query.lon
+  const { q, lat, lon } = req.query;
 
-const CLIENT_ID = "96dHZVzsAutmZhjoahEwrn5buFh4UYyBousoCGUQylaYN3vImZ4_-HAPb9eZ4_iKrot-c7eoBQl9cXN2yaJ0sA=="
-const CLIENT_SECRET = "lrFxI-iSEg_bdmFqn7LhmTyqHeQ3dspgw5_TNAZqv1OUhIRqyxeGdLPMv6V5NNLkweThtK2aSCeO2ZJ6rkGheSbVd0fKhruv"
+  if (!q || !lat || !lon) {
+    return res.status(400).json({ error: "Missing parameters" });
+  }
 
-try {
+  try {
 
-// STEP 1 — Get OAuth token
-const tokenRes = await fetch(
-"https://outpost.mappls.com/api/security/oauth/token",
-{
-method: "POST",
-headers: {
-"Content-Type": "application/x-www-form-urlencoded"
-},
-body:
-`grant_type=client_credentials&client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}`
-}
-)
+    const url =
+      `https://api.olamaps.io/places/v1/search?q=${encodeURIComponent(q)}&location=${lat},${lon}`;
 
-const tokenData = await tokenRes.json()
-const token = tokenData.access_token
+    const response = await fetch(url, {
+      headers: {
+        "x-api-key": process.env.OLA_MAPS_KEY
+      }
+    });
 
-// STEP 2 — Search nearby place
-const searchURL =
-`https://atlas.mappls.com/api/places/nearby/json?keywords=${query}&refLocation=${lat},${lon}&radius=2000`
+    const data = await response.json();
 
-const searchRes = await fetch(searchURL,{
-headers:{
-Authorization: `Bearer ${token}`
-}
-})
+    if (!data.places || data.places.length === 0) {
+      return res.status(404).json({ error: "No place found" });
+    }
 
-const data = await searchRes.json()
+    const place = data.places[0];
 
-if(!data.suggestedLocations || data.suggestedLocations.length === 0){
-res.json({error:"No place found"})
-return
-}
+    res.json({
+      name: place.name,
+      lat: place.lat,
+      lon: place.lng
+    });
 
-const place = data.suggestedLocations[0]
+  } catch (error) {
 
-res.json({
-name: place.placeName,
-lat: place.latitude,
-lon: place.longitude
-})
+    res.status(500).json({ error: "API request failed" });
 
-}
-catch(e){
-
-res.json({error:"Search failed"})
-
-}
-
+  }
 }
