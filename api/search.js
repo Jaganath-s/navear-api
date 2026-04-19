@@ -8,32 +8,35 @@ export default async function handler(req, res) {
 
   try {
 
-    const OLA_API_KEY = "PASTE_YOUR_OLA_KEY_HERE";
+    const OLA_KEY = "j85oYrhSLfT3wAJJFfkzpYRspIDapGLOu9gj4hdz";
 
     const url =
-      "https://api.olamaps.io/places/v1/search?q=" +
+      "https://api.olamaps.io/places/v1/autocomplete?input=" +
       encodeURIComponent(q) +
       "&location=" +
-      lat + "," + lon;
+      lat +
+      "," +
+      lon +
+      "&radius=5000";
 
     const response = await fetch(url, {
       headers: {
-        "x-api-key": j85oYrhSLfT3wAJJFfkzpYRspIDapGLOu9gj4hdz
+        "x-api-key": OLA_KEY
       }
     });
 
     const data = await response.json();
 
-    if (!data.places || data.places.length === 0) {
+    if (!data.predictions || data.predictions.length === 0) {
       return res.status(404).json({ error: "No place found" });
     }
 
-    const place = data.places[0];
+    const place = data.predictions[0];
 
     res.json({
-      name: place.name,
-      lat: place.lat,
-      lon: place.lng
+      name: place.description,
+      lat: place.geometry.location.lat,
+      lon: place.geometry.location.lng
     });
 
   } catch (error) {
