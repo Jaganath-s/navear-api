@@ -4,8 +4,11 @@ const query = req.query.q
 const lat = req.query.lat
 const lon = req.query.lon
 
+// Bias search near user location
+const searchQuery = `${query} near ${lat},${lon}`
+
 const url =
-`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`
+`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchQuery)}&format=json&limit=1`
 
 const r = await fetch(url,{
 headers:{
