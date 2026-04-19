@@ -4,25 +4,26 @@ const query = req.query.q
 const lat = req.query.lat
 const lon = req.query.lon
 
-const GOOGLE_KEY = "YOUR_GOOGLE_API_KEY"
-
 const url =
-`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lon}&keyword=${query}&rankby=distance&key=${GOOGLE_KEY}`
+`https://nominatim.openstreetmap.org/search?q=${query}&format=json&limit=1`
 
-const r = await fetch(url)
+const r = await fetch(url,{
+headers:{
+"User-Agent":"NavEar"
+}
+})
+
 const data = await r.json()
 
-if (!data.results || data.results.length === 0) {
-  res.json({ error: "No place found" })
-  return
+if (!data || data.length === 0) {
+res.json({error:"No place found"})
+return
 }
 
-const place = data.results[0]
-
 res.json({
-name: place.name,
-lat: place.geometry.location.lat,
-lon: place.geometry.location.lng
+name:data[0].display_name,
+lat:data[0].lat,
+lon:data[0].lon
 })
 
 }
